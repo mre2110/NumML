@@ -1,0 +1,790 @@
+
+<!DOCTYPE html>
+
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Proximal Gradient Descent &#8212; Numerische Algorithmen für Maschinelles Lernen WS22/23 (Version 0.50)</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Stichwortverzeichnis" href="genindex.html" />
+    <link rel="search" title="Suche" href="search.html" />
+    <link rel="next" title="Stochastic Gradient Descent" href="14_Stochastic_Gradient_Descent.html" />
+    <link rel="prev" title="Subgradient Descent" href="12_Subgradient_Descent.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="de">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">Numerische Algorithmen für Maschinelles Lernen WS22/23 (Version 0.50)</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="00_Vorwort.html">
+                    Numerische Algorithmen für Maschinelles Lernen (Version 0.50)
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="01_Regression.html">
+   Regression
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="02_Dimensionsreduktion.html">
+   Dimensionsreduktion
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="03_Regularisierung.html">
+   Regularisierung
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="04_Background_Removal_QR.html">
+   Background Removal mit TSVD
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="05_Klassifikation_mit_SVM.html">
+   Support-Vector Klassifikation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="06_Neuronale_Netze.html">
+   Neuronale Netze
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="07_Topic_Extraction.html">
+   Topic Extraction, NMF
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="08_Grundlagen_Optimierung.html">
+   Grundlagen der Optimierung
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="09_Konvexitaet.html">
+   Konvexität
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="10_Gradient_Descent.html">
+   Gradient Descent
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="11_Projected_Gradient_Descent.html">
+   Projected Gradient-Descent
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="12_Subgradient_Descent.html">
+   Subgradient Descent
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Proximal Gradient Descent
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="14_Stochastic_Gradient_Descent.html">
+   Stochastic Gradient Descent
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="15_Probabilistische_Lineare_Algebra.html">
+   Probabilistische Lineare Algebra
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="99_Literatur.html">
+   Weiterführende Links
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/mre2110/NumML/main?urlpath=tree/13_Proximal_Gradient_Descent.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/13_Proximal_Gradient_Descent.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#uberblick">
+   Überblick
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#grundlagen">
+   Grundlagen
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#konvergenz">
+   Konvergenz
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#zusammenfassung">
+   Zusammenfassung
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Proximal Gradient Descent</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#uberblick">
+   Überblick
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#grundlagen">
+   Grundlagen
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#konvergenz">
+   Konvergenz
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#zusammenfassung">
+   Zusammenfassung
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="proximal-gradient-descent">
+<h1>Proximal Gradient Descent<a class="headerlink" href="#proximal-gradient-descent" title="Link zu dieser Überschrift">#</a></h1>
+<section id="uberblick">
+<h2>Überblick<a class="headerlink" href="#uberblick" title="Link zu dieser Überschrift">#</a></h2>
+<p>Bei Subgradient-Descent haben wir gesehen, dass fehlende Differenzierbarkeit von <span class="math notranslate nohighlight">\(f\)</span> kein Problem ist, solange Subgradienten existieren.
+Allerdings reduziert sich bei fehlender Glattheit die Konvergenzgeschwindigkeit.</p>
+<p>Hat <span class="math notranslate nohighlight">\(f\)</span> zusätzlich eine spezielle Struktur, so kann man Gradient-Descent so modifizieren, dass man Konvergenzraten wie im <span class="math notranslate nohighlight">\(C^1\)</span>-Fall erhält.</p>
+<p>Wir untersuchen hier nicht restringierte Probleme, restringierte lassen sich bei
+Proximal-Gradient-Descent
+durch geeignete Wahl der Zielfunktion auf restringierte zurück führen.</p>
+</section>
+<section id="grundlagen">
+<h2>Grundlagen<a class="headerlink" href="#grundlagen" title="Link zu dieser Überschrift">#</a></h2>
+<p>Für <span class="math notranslate nohighlight">\(\gamma &gt; 0\)</span> und festes <span class="math notranslate nohighlight">\(z\)</span> ist die Funktion</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  q(y) = \frac{1}{2\gamma} \|y - z\|_2^2
+  \end{equation*}\]</div>
+<p>strikt konvex mit globalem Minimum <span class="math notranslate nohighlight">\(y_\ast=z\)</span>.</p>
+<p>Für <span class="math notranslate nohighlight">\(f\)</span> differenzierbar kann man deshalb einen Gradient-Descent-Schritt</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  x_{t+1} = x_t - \gamma f'_t
+  \end{equation*}\]</div>
+<p>auch schreiben kann als</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  x_{t+1} 
+  = 
+  \underset{y}{\mathrm{argmin}} 
+  \Big(
+  \frac{1}{2\gamma}
+  \big\|
+  y - (x_t - \gamma f'_t)
+  \big\|_2^2
+  \Big).
+  \end{equation*}\]</div>
+<p>Wir nehmen nun an, dass <span class="math notranslate nohighlight">\(f=g+h\)</span> ist mit</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(g\)</span> differenzierbar, <span class="math notranslate nohighlight">\(L\)</span>-glatt und <span class="math notranslate nohighlight">\(\mu\)</span>-konvex</p></li>
+<li><p><span class="math notranslate nohighlight">\(h\)</span> „nur“ konvex</p></li>
+</ul>
+<p><strong>Beispiel:</strong> Bei Lasso ist</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  f(w) = \underbrace{\frac{1}{2m}\|Xw-y\|_2^2}_{g(w)}
+         + \underbrace{\alpha\|w\|_1}_{h(w)}.
+  \end{equation*}\]</div>
+<p>Wir benutzen jetzt die Darstellung von Gradient-Descent von oben,
+behandeln <span class="math notranslate nohighlight">\(g\)</span> „wie üblich“ und hängen <span class="math notranslate nohighlight">\(h\)</span> „unbehandelt“ an</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+  x_{t+1} 
+  &amp;= 
+  \underset{y}{\mathrm{argmin}} 
+  \Big(
+  \frac{1}{2\gamma}
+  \big\|
+  y - (x_t - \gamma g'_t)
+  \big\|_2^2
+  + h(y)
+  \Big)\\
+  &amp;= 
+  \underset{y}{\mathrm{argmin}} 
+  \Big(
+  \frac{1}{2}
+  \big\|
+  y - (x_t - \gamma g'_t)
+  \big\|_2^2
+  + \gamma h(y)
+  \Big).
+  \end{align*}\]</div>
+<p>Das führt uns zu folgender Notation.</p>
+<p><strong>Definition:</strong></p>
+<ul>
+<li><p>für <span class="math notranslate nohighlight">\(h\)</span> konvex, <span class="math notranslate nohighlight">\(\gamma &gt; 0\)</span> ist
+der <em>Proximal-Operator</em> definiert als</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+    \mathrm{prox}(x) = 
+      \underset{y}{\mathrm{argmin}} 
+      \big(
+      \frac{1}{2} \|y - x\|_2^2 + \gamma h(y)
+      \big)
+    \end{equation*}\]</div>
+</li>
+<li><p>für <span class="math notranslate nohighlight">\(f=g+h\)</span>, <span class="math notranslate nohighlight">\(g\)</span> differenzierbar, <span class="math notranslate nohighlight">\(h\)</span> konvex, ist <em>Proximal-Gradient-Descent</em> gegeben durch</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  x_{t+1} = \mathrm{prox}(y_{t+1}),
+  \quad
+  y_{t+1} = x_t - \gamma g'_t
+  \end{equation*}\]</div>
+</li>
+</ul>
+<p><strong>Bemerkung:</strong></p>
+<ul class="simple">
+<li><p>man kann zeigen, dass für
+<span class="math notranslate nohighlight">\(h\)</span> konvex, halbstetig von unten, „proper“ (<span class="math notranslate nohighlight">\(h(x)&gt;-\infty\)</span> <span class="math notranslate nohighlight">\(\forall x\)</span>,
+<span class="math notranslate nohighlight">\(h\)</span> nicht identisch <span class="math notranslate nohighlight">\(+\infty\)</span>)
+der Proximal-Operator  wohldefiniert ist
+(Eindeutigkeit ist klar, da
+<span class="math notranslate nohighlight">\(\frac{1}{2} \|y - x\|_2^2 + \gamma h(y)\)</span> strikt konvex ist, die sonstigen
+Voraussetzungen an <span class="math notranslate nohighlight">\(h\)</span> braucht man zum Nachweis der Existenz)</p></li>
+<li><p>Proximal-Gradient-Descent ähnelt Projected-Gradient-Descent, wobei
+<span class="math notranslate nohighlight">\(\Pi\)</span> durch <span class="math notranslate nohighlight">\(\mathrm{prox}\)</span> ersetzt wird
+(Übung: Projected-Gradient-Descent ist Spezialfall von
+Proximal-Gradient-Descent)</p></li>
+</ul>
+</section>
+<section id="konvergenz">
+<h2>Konvergenz<a class="headerlink" href="#konvergenz" title="Link zu dieser Überschrift">#</a></h2>
+<p>Die Konvergenzbeweise verlaufen ähnlich wie bei Projected-Gradient-Descent. Dazu benötigen wir Informationen über die Abbildungseigenschaften von <span class="math notranslate nohighlight">\(\mathrm{prox}(\cdot)\)</span>.</p>
+<p><strong>Lemma:</strong></p>
+<ul class="simple">
+<li><p>ist <span class="math notranslate nohighlight">\(x_\ast = \underset{x}{\mathrm{argmin}}  f(x)\)</span>, dann gilt
+<span class="math notranslate nohighlight">\(x_\ast = \mathrm{prox}(x_\ast - \gamma g'_\ast)\)</span>
+(Übung)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\|\mathrm{prox}(y) - \mathrm{prox}(x)\|_2 \leq \|y-x\|_2 \quad\forall x,y\)</span></p></li>
+</ul>
+<p>Es sei nun <span class="math notranslate nohighlight">\(g\)</span> differenzierbar, <span class="math notranslate nohighlight">\(L\)</span>-glatt und <span class="math notranslate nohighlight">\(\mu\)</span>-konvex.
+Wegen der <span class="math notranslate nohighlight">\(L\)</span>-Glattheit ist <span class="math notranslate nohighlight">\(g'\)</span> Lipschitz-stetig, d.h.</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \|g'(y) - g'(x)\|_2 \leq L \|y -x\|_2 .
+  \end{equation*}\]</div>
+<p><span class="math notranslate nohighlight">\(\mu\)</span>-Konvexität bedeutet</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  g(y) \geq g(x) + g'(x)(y-x) + \frac{\mu}{2}\|y -x\|_2^2    
+  \quad \forall x,y,
+  \end{equation*}\]</div>
+<p>also auch</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  g(x) \geq g(y) + g'(y)(x-y) + \frac{\mu}{2}\|x -y\|_2^2   
+  \quad \forall x,y.
+  \end{equation*}\]</div>
+<p>Addition der beiden Ungleichungen liefert</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  g(y) + g(x) \geq g(x) + g(y) + (g'(x)-g'(y))(y-x) + \mu \|y -x\|_2^2 ,
+  \end{equation*}\]</div>
+<p>so dass</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \big(g'(y)-g'(x)\big)(y-x) 
+  \geq   \mu \|y -x\|_2^2  .
+  \end{equation*}\]</div>
+<p>Mit Cauchy-Schwartz folgt</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \mu \|y -x\|_2^2  \leq \big(g'(y)-g'(x)\big)(y-x) \leq \|g'(y) - g'(x)\|_2\|y -x\|_2
+  \end{equation*}\]</div>
+<p>und schließlich</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \|g'(y) - g'(x)\|_2 \geq \mu \|y -x\|_2 .  
+  \end{equation*}\]</div>
+<p>Für <span class="math notranslate nohighlight">\(\beta\in\mathbb{R}\)</span> beliebig erhalten wir</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \beta\|g'(y) - g'(x)\|_2^2 \leq \beta L^2 \|y -x\|_2^2 \quad\text{für}\quad \beta\geq 0 
+  \end{equation*}\]</div>
+<p>bzw.</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \beta\|g'(y) - g'(x)\|_2^2 \leq \beta \mu^2 \|y -x\|_2^2 \quad\text{für}\quad \beta &lt; 0 
+  \end{equation*}\]</div>
+<p>und somit</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \beta\|g'(y) - g'(x)\|_2^2 
+  \leq \max(\beta L^2, \beta\mu^2) \|y -x\|_2^2 
+  \quad \forall \beta \in \mathbb{R}.
+  \end{equation*}\]</div>
+<p>Außerdem ist</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+  \big(g'(y)-g'(x)\big)(y-x) 
+  &amp;\geq   \mu \|y -x\|_2^2  \\
+  &amp;= \frac{L}{L+\mu} \mu \|y -x\|_2^2 + \frac{\mu}{L+\mu} \mu \|y -x\|_2^2 \\
+  &amp;\geq \frac{L}{L+\mu} \mu \|y -x\|_2^2 
+      + \frac{\mu^2}{L+\mu} \frac{1}{L^2}\|g'(y) - g'(x)\|_2^2 .
+  \end{align*}\]</div>
+<p>Wegen <span class="math notranslate nohighlight">\(0 &lt; \mu \leq L\)</span> folgt</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \big(g'(y)-g'(x)\big)(y-x) 
+  \geq
+  \frac{1}{L +\mu} \|g'(y) - g'(x)\|_2^2
+  +\frac{L\mu}{L+\mu} \|y -x\|_2^2. 
+  \end{equation*}\]</div>
+<p>Damit erhalten wir das folgende Resultat.</p>
+<p><strong>Satz:</strong> Ist <span class="math notranslate nohighlight">\(f=g+h\)</span>, <span class="math notranslate nohighlight">\(g\)</span> differenzierbar, <span class="math notranslate nohighlight">\(L\)</span>-glatt und <span class="math notranslate nohighlight">\(\mu\)</span>-konvex,
+<span class="math notranslate nohighlight">\(h\)</span> konvex, <span class="math notranslate nohighlight">\(x_\ast = \mathrm{argmin}_x f(x)\)</span> und</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*}  
+  \ x_{t+1} = \mathrm{prox}(x_t - \gamma g'_t),
+  \end{equation*}\]</div>
+<p>dann gilt</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  \|x_t - x_\ast\|_2 \leq Q(\gamma)^t \|x_0 - x_\ast\|_2
+  \end{equation*}\]</div>
+<p>mit</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+  Q(\gamma) = \max(|1-\gamma L|, |1- \gamma \mu|).
+  \end{equation*}\]</div>
+<p><strong>Beweis:</strong></p>
+<ul>
+<li><p>es ist</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+   \|x_{t+1} - x_\ast\|_2^2
+   &amp; = \|  \mathrm{prox}(x_t - \gamma g'_t) 
+         - \mathrm{prox}(x_\ast - \gamma g'_\ast)\|_2^2 \\
+   &amp; \leq \|x_{t}-\gamma g_{t}'-(x_\ast-\gamma g'_\ast)\|_{2}^{2} \\
+   &amp;   =  \|x_{t}-x_\ast-\gamma(g'_{t}-g'_\ast)\|_{2}^{2} \\
+   &amp;   =  \|x_{t}-x_\ast\|_{2}^{2}
+          +\gamma^{2}\|g_{t}'-g'_\ast\|_{2}^{2} 
+          -2 \gamma(g'_{t}-g'_\ast) (x_{t}-x_\ast)\\
+   &amp; \leq \|x_{t}-x_\ast\|_{2}^{2}
+          +\gamma^{2}\|g_{t}'-g'_\ast\|_{2}^{2} \\
+   &amp; \quad-2 \gamma
+             \big(
+             \frac{1}{L+\mu}\|g_{t}'-g_\ast'\|_{2}^{2}
+             +\frac{L {\mu}}{L+\mu}\|x_{t}-x_{\ast}\|_{2}^{2}
+             \big) \\
+   &amp; =  \underbrace{\Big(1-\frac{2 \gamma L \mu}{L+\mu}\Big)
+        }_{\alpha}
+        \|x_{t}-x_\ast\|_{2}^{2}
+       +\underbrace{
+          \gamma \Big(\gamma-\frac{2}{L+\mu}\Big)
+         }_{\beta}
+         \|g_{t}'-g'_\ast\|_{2}^{2}
+   \end{align*}\]</div>
+<p>und somit</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+   \|x_{t+1} - x_\ast\|_2^2 
+   &amp; \leq \alpha \|x_t - x_\ast\|_2^2 
+        + \max\big(\beta L^2, \beta \mu^2\big) \|x_t - x_\ast\|_2^2 \\
+   &amp;  =  \max\big(\alpha + \beta L^2, \alpha + \beta \mu^2\big) \|x_t - x_\ast\|_2^2 
+   \end{align*}\]</div>
+</li>
+<li><p>mit</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    \alpha+\beta L^{2} 
+    &amp;=1-\frac{2 \gamma L{\mu}}{L+\mu}+\gamma\big(\gamma-\frac{2}{L+\mu}\big) L^{2} \\
+    &amp;=1+\gamma^{2} L^{2}-\frac{1}{L+\mu}\big(2 \gamma L \mu+2 \gamma L^{2}\big) \\
+    &amp;=1+\gamma^{2} L^{2}-\frac{2}{L+\mu} \gamma L(L+\mu) \\
+    &amp;=1+\gamma^{2} L^{2}-2 \gamma L \\
+    &amp;=(1-\gamma L)^{2}
+    \end{align*}\]</div>
+<p>und</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{align*}
+    \alpha+\beta \mu^{2} 
+    &amp;=1-\frac{2 \gamma L{\mu}}{L+\mu}+\gamma\big(\gamma-\frac{2}{L+\mu}\big) \mu^{2} \\
+    &amp;=1+\gamma^{2} \mu^{2}-\frac{2\gamma\mu}{L+\mu}  (L + \mu) \\
+    &amp;=(1-\gamma\mu)^{2}
+    \end{align*}\]</div>
+<p>erhalten wir schließlich</p>
+<div class="amsmath math notranslate nohighlight">
+\[\begin{equation*} 
+    \|x_{t+1} - x_\ast\|_2^2
+    \leq \max\big((1-\gamma L)^{2}, (1-\gamma\mu)^{2}\big)\ \|x_t - x_\ast\|_2^2
+    \end{equation*}\]</div>
+</li>
+</ul>
+<p><span class="math notranslate nohighlight">\(\square\)</span></p>
+</section>
+<section id="zusammenfassung">
+<h2>Zusammenfassung<a class="headerlink" href="#zusammenfassung" title="Link zu dieser Überschrift">#</a></h2>
+<p>Ist <span class="math notranslate nohighlight">\(f=g+h\)</span>, <span class="math notranslate nohighlight">\(g\)</span> differenzierbar, <span class="math notranslate nohighlight">\(L\)</span>-glatt und <span class="math notranslate nohighlight">\(\mu\)</span>-konvex,
+<span class="math notranslate nohighlight">\(h\)</span> konvex, <span class="math notranslate nohighlight">\(x_\ast = \mathrm{argmin}_x f(x)\)</span>, dann hat
+Proximal-Gradient-Descent die selbe asymptotische Konvergenzgeschwindigkeit
+wie im Fall dass <span class="math notranslate nohighlight">\(f\)</span> differenzierbar, <span class="math notranslate nohighlight">\(L\)</span>-glatt und <span class="math notranslate nohighlight">\(\mu\)</span>-konvex ist.
+Die fehlende Glattheit von <span class="math notranslate nohighlight">\(h\)</span> spielt, anders als bei Subgradient-Descent,
+keine Rolle.</p>
+<p>Das Berechnen von</p>
+<div class="math notranslate nohighlight">
+\[
+\mathrm{prox}(x) =\underset{y}{\mathrm{argmin}} 
+      \big(
+      \frac{1}{2} \|y - x\|_2^2 + \gamma h(y)
+      \big)
+\]</div>
+<p>ist in der Regel nicht trivial.
+Für einige spezielle <span class="math notranslate nohighlight">\(h\)</span>, die in der Praxis häufig auftreten,
+lässt sich <span class="math notranslate nohighlight">\(\mathrm{prox}(x)\)</span> einfach bestimmen (siehe Übung).</p>
+<p>Projected-Gradient-Descent kann als Spezialfall von Proximal-Gradient-Descent
+interpretiert werden (siehe Übung).</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="12_Subgradient_Descent.html" title="zurück Seite">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">zurück</p>
+            <p class="prev-next-title">Subgradient Descent</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="14_Stochastic_Gradient_Descent.html" title="weiter Seite">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">weiter</p>
+        <p class="prev-next-title">Stochastic Gradient Descent</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Martin Reißel<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
